@@ -1,0 +1,264 @@
+📄 PROJECT SPEC — Travel Price Comparison MVP (UNIQLO)
+1. Product Goal
+
+Build a mobile MVP that allows travelers to take a photo of a UNIQLO clothing tag, extract the UNIQLO Product ID, and compare prices for the same product across US, Japan, Korea, and EU.
+
+The app prioritizes speed, reliability, and clarity over completeness.
+
+2. MVP Scope (INTENTIONALLY NARROW)
+Supported
+
+Brand: UNIQLO only
+
+Input: Photo of a UNIQLO clothing tag
+
+Identifier: 6-digit UNIQLO Product ID (e.g. 480408)
+
+OCR: On-device OCR
+
+Platforms: Mobile (React Native)
+
+Regions:
+
+US
+
+Japan
+
+Korea
+
+EU
+
+Comparison:
+
+Show prices side-by-side
+
+Convert to user’s home currency
+
+Not Supported (for MVP)
+
+Other brands
+
+Barcodes
+
+Fashion image recognition
+
+Login / accounts
+
+Favorites
+
+Crowdsourcing
+
+Backend persistence
+
+3. Tech Stack
+Frontend
+
+React Native
+
+Expo
+
+Expo Dev Client
+
+TypeScript
+
+Device Capabilities
+
+Camera: expo-camera
+
+Permissions: Camera only
+
+OCR
+
+On-device OCR
+
+Google ML Kit (Android)
+
+Apple Vision (iOS)
+
+OCR returns:
+
+Recognized text
+
+Bounding boxes (optional)
+
+Networking
+
+Fetch UNIQLO product pages directly (HTTP GET)
+
+No authentication required
+
+4. User Flow
+
+User opens app
+
+App opens camera screen immediately
+
+User takes photo of UNIQLO tag
+
+App runs OCR on image
+
+App extracts 6-digit Product ID
+
+App validates Product ID
+
+App fetches prices from:
+
+UNIQLO US
+
+UNIQLO JP
+
+UNIQLO KR
+
+UNIQLO EU
+
+App displays:
+
+Product ID
+
+Prices by country
+
+Converted prices
+
+If Product ID is uncertain:
+
+Prompt user to confirm or re-scan
+
+5. Core Components
+Screens
+
+CameraScreen
+
+ResultScreen
+
+ErrorScreen
+
+Services
+
+OCRService
+
+ProductIdExtractor
+
+UniqloPriceService
+
+CurrencyConverter
+
+6. Detailed Logic
+OCR Pipeline
+
+Capture image
+
+Run OCR
+
+Return all detected text as an array of strings
+
+Product ID Extraction
+
+Extract all 6-digit numbers using regex:
+
+\b\d{6}\b
+
+
+Rank candidates using heuristics:
+
+Appears near hyphen
+
+Appears once
+
+Appears near center/top of image
+
+Select highest-confidence ID
+
+Validation
+
+Construct UNIQLO product URLs using Product ID
+
+If at least one region returns HTTP 200 → valid
+
+7. UNIQLO URL Patterns
+
+Use Product ID to build URLs:
+
+US: https://www.uniqlo.com/us/en/products/E{PRODUCT_ID}-000/00
+JP: https://www.uniqlo.com/jp/ja/products/E{PRODUCT_ID}-000/00
+KR: https://www.uniqlo.com/kr/ko/products/E{PRODUCT_ID}-000/00
+EU: https://www.uniqlo.com/eu-ee/en/products/E{PRODUCT_ID}-000/00
+
+8. Price Extraction
+
+Parse HTML or embedded JSON
+
+Extract:
+
+Price
+
+Currency
+
+No need to extract size or color for MVP
+
+9. UI Requirements
+Camera Screen
+
+Full-screen camera
+
+Instruction text:
+“Take a photo of the UNIQLO tag”
+
+Capture button
+
+Results Screen
+
+Product ID (clearly shown)
+
+Table of prices:
+
+Country
+
+Local price
+
+Converted price
+
+Button: “Scan another tag”
+
+Error States
+
+No Product ID found
+
+OCR failed
+
+Product not found
+
+10. Acceptance Criteria
+
+The MVP is successful if:
+
+User can scan a real UNIQLO tag
+
+App correctly extracts a 6-digit Product ID
+
+App fetches prices from at least 2 regions
+
+App displays a clear comparison
+
+Total scan → result time < 3 seconds
+
+11. Out of Scope (Explicit)
+
+Authentication
+
+Analytics
+
+Styling polish
+
+Barcode scanning
+
+Machine learning models
+
+Push notifications
+
+Payment or checkout
+
+12. Guiding Principle
+
+Optimize for trust and correctness, not coverage.
+
+If the Product ID is uncertain, the app must ask the user, not guess.
