@@ -1,0 +1,10 @@
+# OS cruft
+.DS_Store
+
+# Local proxy/test scripts kept out of repo
+server.js
+worker.js
+
+# Debug artifacts
+app/tmp_*.html
+app/tmp_*.js
