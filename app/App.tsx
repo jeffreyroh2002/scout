@@ -89,11 +89,6 @@ export default function App() {
       <SafeAreaView style={styles.container}>
         <StatusBar style="light" />
         {renderContent()}
-        {screen === 'camera' && (
-          <View style={styles.banner} pointerEvents="none">
-            <Text style={styles.bannerText}>Take a photo of the UNIQLO tag to start.</Text>
-          </View>
-        )}
       </SafeAreaView>
     </GestureHandlerRootView>
   );
@@ -115,22 +110,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#000',
-  },
-  banner: {
-    position: 'absolute',
-    top: 16,
-    left: 16,
-    right: 16,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 12,
-  },
-  bannerText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
-    textAlign: 'center',
   },
   processingContainer: {
     flex: 1,
