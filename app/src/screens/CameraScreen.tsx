@@ -104,21 +104,25 @@ export default function CameraScreen({ onCapture, onError, disabled = false, sta
             zoom={zoom}
             enableTorch={false}
           >
-            <View style={styles.overlay} pointerEvents="box-none">
-              <View style={styles.topBar} pointerEvents="none">
-                <Text style={styles.instruction}>{INSTRUCTION}</Text>
-                {statusMessage ? <Text style={styles.status}>{statusMessage}</Text> : null}
-                {localStatus && !statusMessage ? (
-                  <Text style={styles.status}>{localStatus}</Text>
-                ) : null}
-              </View>
+        <View style={styles.overlay} pointerEvents="box-none">
+          <View style={styles.topBar} pointerEvents="none">
+            <Text style={styles.instruction}>{INSTRUCTION}</Text>
+            {statusMessage ? <Text style={styles.status}>{statusMessage}</Text> : null}
+            {localStatus && !statusMessage ? (
+              <Text style={styles.status}>{localStatus}</Text>
+            ) : null}
+          </View>
 
-              <View style={styles.bottomBar}>
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel="Capture photo"
-                  style={({ pressed }) => [
-                    styles.shutterButton,
+          <View style={styles.frameContainer} pointerEvents="none">
+            <View style={styles.scanFrame} />
+          </View>
+
+          <View style={styles.bottomBar}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Capture photo"
+              style={({ pressed }) => [
+                styles.shutterButton,
                     pressed && styles.shutterButtonPressed,
                     (isCapturing || disabled) && styles.shutterButtonDisabled,
                   ]}
@@ -168,6 +172,23 @@ const styles = StyleSheet.create({
   bottomBar: {
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  frameContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  scanFrame: {
+    width: '60%',
+    aspectRatio: 0.40,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: '#00d1ff',
+    backgroundColor: 'rgba(0, 209, 255, 0.06)',
+    shadowColor: '#00d1ff',
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 0 },
   },
   shutterButton: {
     height: 72,
