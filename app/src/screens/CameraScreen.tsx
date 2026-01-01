@@ -1,5 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  PinchGestureHandler,
+  type PinchGestureHandlerGestureEvent,
+} from 'react-native-gesture-handler';
 import { CameraCapturedPicture, CameraView, useCameraPermissions } from 'expo-camera';
 
 type Props = {
@@ -16,6 +20,19 @@ export default function CameraScreen({ onCapture, onError, disabled = false, sta
   const cameraRef = useRef<CameraView | null>(null);
   const [isCapturing, setIsCapturing] = useState(false);
   const [localStatus, setLocalStatus] = useState<string | null>(null);
+  const [zoom, setZoom] = useState(0.2); // start slightly zoomed to avoid ultra-wide look
+  const baseZoom = useRef(zoom);
+
+  const clampZoom = (value: number) => Math.min(1, Math.max(0, value));
+
+  const handlePinch = (event: PinchGestureHandlerGestureEvent) => {
+    const scaled = clampZoom(baseZoom.current * event.nativeEvent.scale);
+    setZoom(Number(scaled.toFixed(3)));
+  };
+
+  const handlePinchStateChange = () => {
+    baseZoom.current = zoom;
+  };
 
   useEffect(() => {
     if (permission?.status === 'undetermined') {
@@ -78,35 +95,47 @@ export default function CameraScreen({ onCapture, onError, disabled = false, sta
 
   return (
     <View style={styles.container}>
-      <CameraView ref={cameraRef} style={StyleSheet.absoluteFill} facing="back">
-        <View style={styles.overlay} pointerEvents="box-none">
-          <View style={styles.topBar} pointerEvents="none">
-            <Text style={styles.instruction}>{INSTRUCTION}</Text>
-            {statusMessage ? <Text style={styles.status}>{statusMessage}</Text> : null}
-            {localStatus && !statusMessage ? <Text style={styles.status}>{localStatus}</Text> : null}
-          </View>
+      <PinchGestureHandler onGestureEvent={handlePinch} onEnded={handlePinchStateChange}>
+        <View style={{ flex: 1 }}>
+          <CameraView
+            ref={cameraRef}
+            style={StyleSheet.absoluteFill}
+            facing="back"
+            zoom={zoom}
+            enableTorch={false}
+          >
+            <View style={styles.overlay} pointerEvents="box-none">
+              <View style={styles.topBar} pointerEvents="none">
+                <Text style={styles.instruction}>{INSTRUCTION}</Text>
+                {statusMessage ? <Text style={styles.status}>{statusMessage}</Text> : null}
+                {localStatus && !statusMessage ? (
+                  <Text style={styles.status}>{localStatus}</Text>
+                ) : null}
+              </View>
 
-          <View style={styles.bottomBar}>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Capture photo"
-              style={({ pressed }) => [
-                styles.shutterButton,
-                pressed && styles.shutterButtonPressed,
-                (isCapturing || disabled) && styles.shutterButtonDisabled,
-              ]}
-              onPress={handleCapture}
-              disabled={isCapturing || disabled}
-            >
-              {isCapturing ? (
-                <ActivityIndicator color="#111" />
-              ) : (
-                <View style={styles.shutterInner} />
-              )}
-            </Pressable>
-          </View>
+              <View style={styles.bottomBar}>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Capture photo"
+                  style={({ pressed }) => [
+                    styles.shutterButton,
+                    pressed && styles.shutterButtonPressed,
+                    (isCapturing || disabled) && styles.shutterButtonDisabled,
+                  ]}
+                  onPress={handleCapture}
+                  disabled={isCapturing || disabled}
+                >
+                  {isCapturing ? (
+                    <ActivityIndicator color="#111" />
+                  ) : (
+                    <View style={styles.shutterInner} />
+                  )}
+                </Pressable>
+              </View>
+            </View>
+          </CameraView>
         </View>
-      </CameraView>
+      </PinchGestureHandler>
     </View>
   );
 }

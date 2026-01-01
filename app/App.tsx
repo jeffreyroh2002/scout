@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
 import { ActivityIndicator, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StatusBar } from 'expo-status-bar';
 import { CameraCapturedPicture } from 'expo-camera';
 
@@ -84,15 +85,17 @@ export default function App() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar style="light" />
-      {renderContent()}
-      {screen === 'camera' && (
-        <View style={styles.banner} pointerEvents="none">
-          <Text style={styles.bannerText}>Take a photo of the UNIQLO tag to start.</Text>
-        </View>
-      )}
-    </SafeAreaView>
+    <GestureHandlerRootView style={styles.gestureRoot}>
+      <SafeAreaView style={styles.container}>
+        <StatusBar style="light" />
+        {renderContent()}
+        {screen === 'camera' && (
+          <View style={styles.banner} pointerEvents="none">
+            <Text style={styles.bannerText}>Take a photo of the UNIQLO tag to start.</Text>
+          </View>
+        )}
+      </SafeAreaView>
+    </GestureHandlerRootView>
   );
 }
 
@@ -106,6 +109,9 @@ function Processing({ message }: { message: string }) {
 }
 
 const styles = StyleSheet.create({
+  gestureRoot: {
+    flex: 1,
+  },
   container: {
     flex: 1,
     backgroundColor: '#000',
