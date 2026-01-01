@@ -10,20 +10,28 @@ type Props = {
 };
 
 export default function ResultScreen({ productId, prices, homeCurrency, onRescan }: Props) {
-  const renderRow = ({ item }: { item: PriceEntry }) => (
-    <View style={styles.row}>
-      <View style={styles.cellRegionWrap}>
-        <Text style={styles.cellRegion}>{item.region}</Text>
-        {item.error ? <Text style={styles.errorText}>{item.error}</Text> : null}
+  const renderRow = ({ item }: { item: PriceEntry }) => {
+    const isUnavailable = Boolean(item.error && item.error.includes('HTTP 404'));
+
+    return (
+      <View style={[styles.row, isUnavailable && styles.rowUnavailable]}>
+        <View style={styles.cellRegionWrap}>
+          <Text style={[styles.cellRegion, isUnavailable && styles.textMuted]}>{item.region}</Text>
+          {item.error ? (
+            <Text style={styles.errorText}>
+              {isUnavailable ? 'Not available in this region' : item.error}
+            </Text>
+          ) : null}
+        </View>
+        <Text style={[styles.cellPrice, isUnavailable && styles.textMuted]}>
+          {item.price != null ? `${item.price} ${item.currency}` : '—'}
+        </Text>
+        <Text style={[styles.cellPrice, isUnavailable && styles.textMuted]}>
+          {item.convertedPrice != null ? `${item.convertedPrice} ${homeCurrency}` : '—'}
+        </Text>
       </View>
-      <Text style={styles.cellPrice}>
-        {item.price != null ? `${item.price} ${item.currency}` : '—'}
-      </Text>
-      <Text style={styles.cellPrice}>
-        {item.convertedPrice != null ? `${item.convertedPrice} ${homeCurrency}` : '—'}
-      </Text>
-    </View>
-  );
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -89,6 +97,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 12,
   },
+  rowUnavailable: {
+    opacity: 0.5,
+  },
   cellRegionWrap: {
     flex: 0.8,
   },
@@ -103,6 +114,9 @@ const styles = StyleSheet.create({
   cellPrice: {
     color: '#dbe3ef',
     flex: 1,
+  },
+  textMuted: {
+    color: '#96a4b5',
   },
   errorText: {
     color: '#f97373',
