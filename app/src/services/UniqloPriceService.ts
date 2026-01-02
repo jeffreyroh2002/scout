@@ -366,6 +366,14 @@ function parseProductName(html: string): string | undefined {
   return undefined;
 }
 
+function parseProductImage(html: string): string | undefined {
+  const ogMatch = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i);
+  if (ogMatch?.[1]) {
+    return ogMatch[1].trim();
+  }
+  return undefined;
+}
+
 async function fetchPricesViaProxy(productId: string): Promise<PriceEntry[] | null> {
   if (!UNIQLO_PROXY_URL) return null;
 
@@ -442,6 +450,8 @@ async function fetchRegionDirect(productId: string, config: RegionConfig): Promi
 
     const html = await response.text();
     const price = parsePrice(html, productId, config.currency);
+    const productName = parseProductName(html);
+    const imageUrl = parseProductImage(html);
 
     if (price == null) {
       const priceTokens = (html.match(/"prices"/g) || []).length;
@@ -453,7 +463,8 @@ async function fetchRegionDirect(productId: string, config: RegionConfig): Promi
         currency: config.currency,
         convertedPrice: null,
         error: `Price not found (len=${html.length}, prices=${priceTokens}, symbols=${symbolTokens})`,
-        productName: parseProductName(html),
+        productName,
+        imageUrl,
       } as PriceEntry;
     }
 
@@ -463,7 +474,8 @@ async function fetchRegionDirect(productId: string, config: RegionConfig): Promi
       price,
       currency: config.currency,
       convertedPrice: null,
-      productName: parseProductName(html),
+      productName,
+      imageUrl,
     } as PriceEntry;
   } catch (error) {
     return {
@@ -474,6 +486,7 @@ async function fetchRegionDirect(productId: string, config: RegionConfig): Promi
       convertedPrice: null,
       error: error instanceof Error ? error.message : 'Unable to fetch price',
       productName: undefined,
+      imageUrl: undefined,
     } as PriceEntry;
   }
 }

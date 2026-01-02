@@ -1,10 +1,18 @@
 import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import {
   PinchGestureHandler,
   type PinchGestureHandlerGestureEvent,
 } from 'react-native-gesture-handler';
 import { CameraCapturedPicture, CameraView, useCameraPermissions } from 'expo-camera';
+import type { HistoryEntry } from '../types';
 
 type Props = {
   onCapture?: (photo: CameraCapturedPicture) => void;
@@ -12,14 +20,20 @@ type Props = {
   disabled?: boolean;
   statusMessage?: string | null;
   onManualLookup?: (productId: string) => void;
+  history?: HistoryEntry[];
+  onSelectHistory?: (entry: HistoryEntry) => void;
+  onOpenHistory?: () => void;
 };
 
-const INSTRUCTION = 'Take a photo of the UNIQLO tag';
+const INSTRUCTION = 'Take a photo of the tag';
 
 export default function CameraScreen({
   onCapture,
   onError,
   onManualLookup,
+  history = [],
+  onSelectHistory,
+  onOpenHistory,
   disabled = false,
   statusMessage,
 }: Props) {
@@ -132,14 +146,7 @@ export default function CameraScreen({
                       onChangeText={setDebugInput}
                       autoCapitalize="none"
                       autoCorrect={false}
-                    />
-                    <Pressable
-                      style={({ pressed }) => [
-                        styles.debugButton,
-                        (pressed || !debugInput.trim()) && styles.debugButtonDisabled,
-                      ]}
-                      disabled={!debugInput.trim()}
-                      onPress={() => {
+                      onSubmitEditing={() => {
                         const idMatch = debugInput.match(/E?(\d{6})/);
                         const id = idMatch?.[1];
                         if (id) {
@@ -149,9 +156,8 @@ export default function CameraScreen({
                           setLocalStatus('Enter a valid 6-digit ID or URL containing it.');
                         }
                       }}
-                    >
-                      <Text style={styles.debugButtonLabel}>Lookup</Text>
-                    </Pressable>
+                      returnKeyType="search"
+                    />
                   </View>
                 </View>
               ) : null}
@@ -161,6 +167,14 @@ export default function CameraScreen({
               </View>
 
               <View style={styles.bottomBar}>
+                {history.length > 0 && onOpenHistory ? (
+                  <Pressable
+                    style={({ pressed }) => [styles.historyButton, pressed && styles.historyButtonPressed]}
+                    onPress={onOpenHistory}
+                  >
+                    <Text style={styles.historyButtonLabel}>History</Text>
+                  </Pressable>
+                ) : null}
                 <Pressable
                   accessibilityRole="button"
                   accessibilityLabel="Capture photo"
@@ -215,6 +229,20 @@ const styles = StyleSheet.create({
   bottomBar: {
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 10,
+  },
+  historyButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.14)',
+  },
+  historyButtonPressed: {
+    opacity: 0.8,
+  },
+  historyButtonLabel: {
+    color: '#fff',
+    fontWeight: '700',
   },
   frameContainer: {
     flex: 1,
@@ -295,16 +323,17 @@ const styles = StyleSheet.create({
   },
   debugPanel: {
     gap: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     backgroundColor: 'rgba(0,0,0,0.5)',
     borderRadius: 12,
   },
   debugFloating: {
     position: 'absolute',
-    top: 12,
-    left: 12,
-    right: 12,
+    top: '50%',
+    left: '50%',
+    width: '78%',
+    transform: [{ translateX: -0.39 * 100 + '%' as any }, { translateY: -0.5 * 100 + '%' as any }],
   },
   debugInput: {
     borderWidth: 1,
@@ -327,5 +356,15 @@ const styles = StyleSheet.create({
   debugButtonLabel: {
     color: '#0f1720',
     fontWeight: '700',
+  },
+  historyWrap: {
+    marginTop: 8,
+    gap: 6,
+  },
+  historyTitle: {
+    color: '#e6e6e6',
+    fontSize: 12,
+    fontWeight: '700',
+    textTransform: 'uppercase',
   },
 });

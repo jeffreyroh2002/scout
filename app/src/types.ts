@@ -10,6 +10,14 @@ export type PriceEntry = {
   convertedPrice: number | null;
   error?: string;
   productName?: string;
+  imageUrl?: string;
+};
+
+export type HistoryEntry = {
+  productId: string;
+  productName?: string;
+  prices: PriceEntry[];
+  timestamp: number;
 };
 
 export type OcrResult = {

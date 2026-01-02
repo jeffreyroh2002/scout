@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StatusBar } from 'expo-status-bar';
@@ -7,19 +7,22 @@ import { CameraCapturedPicture } from 'expo-camera';
 import CameraScreen from './src/screens/CameraScreen';
 import ResultScreen from './src/screens/ResultScreen';
 import ErrorScreen from './src/screens/ErrorScreen';
+import HistoryScreen from './src/screens/HistoryScreen';
 import { recognizeTextFromImage } from './src/services/OCRService';
 import { extractProductId } from './src/services/ProductIdExtractor';
 import { fetchPrices, validateProductId } from './src/services/UniqloPriceService';
 import { convertPrices } from './src/services/CurrencyConverter';
-import type { Currency, PriceEntry } from './src/types';
+import type { Currency, HistoryEntry, PriceEntry } from './src/types';
+import { loadHistory, saveHistory, upsertHistory } from './src/services/HistoryService';
 
-type ScreenState = 'camera' | 'processing' | 'result' | 'error';
+type ScreenState = 'camera' | 'processing' | 'result' | 'error' | 'history';
 
 export default function App() {
   const [screen, setScreen] = useState<ScreenState>('camera');
   const [processingMessage, setProcessingMessage] = useState<string>('Running OCR…');
   const [result, setResult] = useState<{ productId: string; prices: PriceEntry[] } | null>(null);
   const [errorMessage, setErrorMessage] = useState<string>('Something went wrong.');
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
 
   const [homeCurrency, setHomeCurrency] = useState<Currency>('USD');
 
@@ -38,6 +41,16 @@ export default function App() {
         const converted = convertPrices(priceEntries, homeCurrency);
 
         setResult({ productId, prices: converted });
+        setHistory((prev) => {
+          const updated = upsertHistory(prev, {
+            productId,
+            productName: converted.find((p) => p.productName)?.productName,
+            prices: converted,
+            timestamp: Date.now(),
+          });
+          saveHistory(updated);
+          return updated;
+        });
         setScreen('result');
       } catch (error) {
         const message =
@@ -91,9 +104,36 @@ export default function App() {
       setResult((prev) =>
         prev ? { ...prev, prices: convertPrices(prev.prices, nextCurrency) } : prev
       );
+      setHistory((prev) =>
+        prev.map((entry) => ({
+          ...entry,
+          prices: convertPrices(entry.prices, nextCurrency),
+        }))
+      );
     },
     []
   );
+
+  const handleSelectHistory = useCallback(
+    (entry: HistoryEntry) => {
+      setResult({
+        productId: entry.productId,
+        prices: convertPrices(entry.prices, homeCurrency),
+      });
+      setScreen('result');
+    },
+    [homeCurrency]
+  );
+
+  useEffect(() => {
+    loadHistory().then((items) => {
+      const converted = items.map((entry) => ({
+        ...entry,
+        prices: convertPrices(entry.prices, homeCurrency),
+      }));
+      setHistory(converted);
+    });
+  }, [homeCurrency]);
 
   const renderContent = () => {
     switch (screen) {
@@ -111,12 +151,25 @@ export default function App() {
         ) : null;
       case 'error':
         return <ErrorScreen message={errorMessage} onRetry={resetToCamera} />;
+      case 'history':
+        return (
+          <HistoryScreen
+            history={history}
+            onSelect={(entry) => {
+              handleSelectHistory(entry);
+            }}
+            onClose={resetToCamera}
+          />
+        );
       case 'camera':
       default:
         return (
           <CameraScreen
             onCapture={handleCapture}
             onManualLookup={handleManualLookup}
+            history={history}
+            onSelectHistory={handleSelectHistory}
+            onOpenHistory={() => setScreen('history')}
             statusMessage={null}
             disabled={false}
           />
