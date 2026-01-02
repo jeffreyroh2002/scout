@@ -11,7 +11,7 @@ import { recognizeTextFromImage } from './src/services/OCRService';
 import { extractProductId } from './src/services/ProductIdExtractor';
 import { fetchPrices, validateProductId } from './src/services/UniqloPriceService';
 import { convertPrices } from './src/services/CurrencyConverter';
-import type { PriceEntry } from './src/types';
+import type { Currency, PriceEntry } from './src/types';
 
 type ScreenState = 'camera' | 'processing' | 'result' | 'error';
 
@@ -21,7 +21,7 @@ export default function App() {
   const [result, setResult] = useState<{ productId: string; prices: PriceEntry[] } | null>(null);
   const [errorMessage, setErrorMessage] = useState<string>('Something went wrong.');
 
-  const homeCurrency: 'USD' = 'USD';
+  const [homeCurrency, setHomeCurrency] = useState<Currency>('USD');
 
   const runLookup = useCallback(
     async (productId: string) => {
@@ -85,6 +85,16 @@ export default function App() {
     [runLookup]
   );
 
+  const handleHomeCurrencyChange = useCallback(
+    (nextCurrency: Currency) => {
+      setHomeCurrency(nextCurrency);
+      setResult((prev) =>
+        prev ? { ...prev, prices: convertPrices(prev.prices, nextCurrency) } : prev
+      );
+    },
+    []
+  );
+
   const renderContent = () => {
     switch (screen) {
       case 'processing':
@@ -95,6 +105,7 @@ export default function App() {
             productId={result.productId}
             prices={result.prices}
             homeCurrency={homeCurrency}
+            onChangeHomeCurrency={handleHomeCurrencyChange}
             onRescan={resetToCamera}
           />
         ) : null;

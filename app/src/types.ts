@@ -9,6 +9,7 @@ export type PriceEntry = {
   currency: Currency;
   convertedPrice: number | null;
   error?: string;
+  productName?: string;
 };
 
 export type OcrResult = {
