@@ -3,6 +3,7 @@ import { ActivityIndicator, SafeAreaView, StyleSheet, Text, View } from 'react-n
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StatusBar } from 'expo-status-bar';
 import { CameraCapturedPicture } from 'expo-camera';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import CameraScreen from './src/screens/CameraScreen';
 import ResultScreen from './src/screens/ResultScreen';
@@ -101,6 +102,7 @@ export default function App() {
   const handleHomeCurrencyChange = useCallback(
     (nextCurrency: Currency) => {
       setHomeCurrency(nextCurrency);
+      AsyncStorage.setItem('homeCurrency', nextCurrency).catch(() => {});
       setResult((prev) =>
         prev ? { ...prev, prices: convertPrices(prev.prices, nextCurrency) } : prev
       );
@@ -133,6 +135,13 @@ export default function App() {
       }));
       setHistory(converted);
     });
+    AsyncStorage.getItem('homeCurrency')
+      .then((value) => {
+        if (value && (['USD', 'EUR', 'JPY', 'KRW'] as Currency[]).includes(value as Currency)) {
+          setHomeCurrency(value as Currency);
+        }
+      })
+      .catch(() => {});
   }, [homeCurrency]);
 
   const renderContent = () => {
