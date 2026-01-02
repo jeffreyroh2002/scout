@@ -1,4 +1,4 @@
-import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { PriceEntry } from '../types';
 
@@ -12,9 +12,22 @@ type Props = {
 export default function ResultScreen({ productId, prices, homeCurrency, onRescan }: Props) {
   const renderRow = ({ item }: { item: PriceEntry }) => {
     const isUnavailable = Boolean(item.error && item.error.includes('HTTP 404'));
+    const canOpen = Boolean(item.productUrl);
 
     return (
-      <View style={[styles.row, isUnavailable && styles.rowUnavailable]}>
+      <Pressable
+        accessibilityRole={canOpen ? 'button' : undefined}
+        accessibilityLabel={canOpen ? `Open ${item.region} product page` : undefined}
+        onPress={() => {
+          if (canOpen) Linking.openURL(item.productUrl!);
+        }}
+        disabled={!canOpen}
+        style={({ pressed }) => [
+          styles.row,
+          isUnavailable && styles.rowUnavailable,
+          pressed && canOpen && styles.rowPressed,
+        ]}
+      >
         <View style={styles.cellRegionWrap}>
           <Text style={[styles.cellRegion, isUnavailable && styles.textMuted]}>{item.region}</Text>
           {item.error ? (
@@ -29,7 +42,7 @@ export default function ResultScreen({ productId, prices, homeCurrency, onRescan
         <Text style={[styles.cellPrice, isUnavailable && styles.textMuted]}>
           {item.convertedPrice != null ? `${item.convertedPrice} ${homeCurrency}` : '—'}
         </Text>
-      </View>
+      </Pressable>
     );
   };
 
@@ -96,6 +109,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingVertical: 12,
+    paddingHorizontal: 4,
+  },
+  rowPressed: {
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    borderRadius: 8,
   },
   rowUnavailable: {
     opacity: 0.5,

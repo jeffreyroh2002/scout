@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import {
   PinchGestureHandler,
   type PinchGestureHandlerGestureEvent,
@@ -11,17 +11,25 @@ type Props = {
   onError?: (error: Error) => void;
   disabled?: boolean;
   statusMessage?: string | null;
+  onManualLookup?: (productId: string) => void;
 };
 
 const INSTRUCTION = 'Take a photo of the UNIQLO tag';
 
-export default function CameraScreen({ onCapture, onError, disabled = false, statusMessage }: Props) {
+export default function CameraScreen({
+  onCapture,
+  onError,
+  onManualLookup,
+  disabled = false,
+  statusMessage,
+}: Props) {
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef<CameraView | null>(null);
   const [isCapturing, setIsCapturing] = useState(false);
   const [localStatus, setLocalStatus] = useState<string | null>(null);
   const [zoom, setZoom] = useState(0.2); // start slightly zoomed to avoid ultra-wide look
   const baseZoom = useRef(zoom);
+  const [debugInput, setDebugInput] = useState('');
 
   const clampZoom = (value: number) => Math.min(1, Math.max(0, value));
 
@@ -104,25 +112,60 @@ export default function CameraScreen({ onCapture, onError, disabled = false, sta
             zoom={zoom}
             enableTorch={false}
           >
-        <View style={styles.overlay} pointerEvents="box-none">
-          <View style={styles.topBar} pointerEvents="none">
-            <Text style={styles.instruction}>{INSTRUCTION}</Text>
-            {statusMessage ? <Text style={styles.status}>{statusMessage}</Text> : null}
-            {localStatus && !statusMessage ? (
-              <Text style={styles.status}>{localStatus}</Text>
-            ) : null}
-          </View>
+            <View style={styles.overlay} pointerEvents="box-none">
+              <View style={styles.topBar} pointerEvents="none">
+                <Text style={styles.instruction}>{INSTRUCTION}</Text>
+                {statusMessage ? <Text style={styles.status}>{statusMessage}</Text> : null}
+                {localStatus && !statusMessage ? (
+                  <Text style={styles.status}>{localStatus}</Text>
+                ) : null}
+              </View>
 
-          <View style={styles.frameContainer} pointerEvents="none">
-            <View style={styles.scanFrame} />
-          </View>
+              {__DEV__ && onManualLookup ? (
+                <View style={styles.debugFloating} pointerEvents="box-none">
+                  <View style={styles.debugPanel}>
+                    <TextInput
+                      placeholder="Paste product URL or ID"
+                      placeholderTextColor="rgba(255,255,255,0.6)"
+                      style={styles.debugInput}
+                      value={debugInput}
+                      onChangeText={setDebugInput}
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                    />
+                    <Pressable
+                      style={({ pressed }) => [
+                        styles.debugButton,
+                        (pressed || !debugInput.trim()) && styles.debugButtonDisabled,
+                      ]}
+                      disabled={!debugInput.trim()}
+                      onPress={() => {
+                        const idMatch = debugInput.match(/E?(\d{6})/);
+                        const id = idMatch?.[1];
+                        if (id) {
+                          setLocalStatus(`Manual lookup: ${id}`);
+                          onManualLookup(id);
+                        } else {
+                          setLocalStatus('Enter a valid 6-digit ID or URL containing it.');
+                        }
+                      }}
+                    >
+                      <Text style={styles.debugButtonLabel}>Lookup</Text>
+                    </Pressable>
+                  </View>
+                </View>
+              ) : null}
 
-          <View style={styles.bottomBar}>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Capture photo"
-              style={({ pressed }) => [
-                styles.shutterButton,
+              <View style={styles.frameContainer} pointerEvents="none">
+                <View style={styles.scanFrame} />
+              </View>
+
+              <View style={styles.bottomBar}>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Capture photo"
+                  style={({ pressed }) => [
+                    styles.shutterButton,
                     pressed && styles.shutterButtonPressed,
                     (isCapturing || disabled) && styles.shutterButtonDisabled,
                   ]}
@@ -180,7 +223,7 @@ const styles = StyleSheet.create({
   },
   scanFrame: {
     width: '60%',
-    aspectRatio: 0.40,
+    aspectRatio: 0.4,
     borderRadius: 16,
     borderWidth: 2,
     borderColor: '#00d1ff',
@@ -249,5 +292,40 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: 'center',
     lineHeight: 20,
+  },
+  debugPanel: {
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    borderRadius: 12,
+  },
+  debugFloating: {
+    position: 'absolute',
+    top: 12,
+    left: 12,
+    right: 12,
+  },
+  debugInput: {
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.4)',
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    color: '#fff',
+    backgroundColor: 'rgba(0,0,0,0.4)',
+  },
+  debugButton: {
+    backgroundColor: '#fff',
+    paddingVertical: 8,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  debugButtonDisabled: {
+    opacity: 0.6,
+  },
+  debugButtonLabel: {
+    color: '#0f1720',
+    fontWeight: '700',
   },
 });

@@ -23,24 +23,10 @@ export default function App() {
 
   const homeCurrency: 'USD' = 'USD';
 
-  const resetToCamera = useCallback(() => {
-    setResult(null);
-    setErrorMessage('');
-    setScreen('camera');
-  }, []);
-
-  const handleCapture = useCallback(
-    async (photo: CameraCapturedPicture) => {
+  const runLookup = useCallback(
+    async (productId: string) => {
       try {
         setScreen('processing');
-        setProcessingMessage('Running OCR on tag…');
-        const ocrResult = await recognizeTextFromImage(photo.uri);
-
-        const { productId } = extractProductId(ocrResult.text);
-        if (!productId) {
-          throw new Error('No Product ID found. Please re-scan the tag.');
-        }
-
         setProcessingMessage(`Found ${productId}. Validating…`);
         const valid = await validateProductId(productId);
         if (!valid) {
@@ -63,6 +49,42 @@ export default function App() {
     [homeCurrency]
   );
 
+  const resetToCamera = useCallback(() => {
+    setResult(null);
+    setErrorMessage('');
+    setScreen('camera');
+  }, []);
+
+  const handleCapture = useCallback(
+    async (photo: CameraCapturedPicture) => {
+      try {
+        setScreen('processing');
+        setProcessingMessage('Running OCR on tag…');
+        const ocrResult = await recognizeTextFromImage(photo.uri);
+
+        const { productId } = extractProductId(ocrResult.text);
+        if (!productId) {
+          throw new Error('No Product ID found. Please re-scan the tag.');
+        }
+
+        await runLookup(productId);
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : 'Unable to process this tag. Please try again.';
+        setErrorMessage(message);
+        setScreen('error');
+      }
+    },
+    [runLookup]
+  );
+
+  const handleManualLookup = useCallback(
+    async (productId: string) => {
+      await runLookup(productId);
+    },
+    [runLookup]
+  );
+
   const renderContent = () => {
     switch (screen) {
       case 'processing':
@@ -80,7 +102,14 @@ export default function App() {
         return <ErrorScreen message={errorMessage} onRetry={resetToCamera} />;
       case 'camera':
       default:
-        return <CameraScreen onCapture={handleCapture} statusMessage={null} disabled={false} />;
+        return (
+          <CameraScreen
+            onCapture={handleCapture}
+            onManualLookup={handleManualLookup}
+            statusMessage={null}
+            disabled={false}
+          />
+        );
     }
   };
 
