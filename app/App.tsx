@@ -13,17 +13,19 @@ import { recognizeTextFromImage } from './src/services/OCRService';
 import { extractProductId } from './src/services/ProductIdExtractor';
 import { fetchPrices, validateProductId } from './src/services/UniqloPriceService';
 import { convertPrices } from './src/services/CurrencyConverter';
-import type { Currency, HistoryEntry, PriceEntry } from './src/types';
+import type { Currency, HistoryEntry, PriceEntry, Retailer } from './src/types';
 import { loadHistory, saveHistory, upsertHistory } from './src/services/HistoryService';
+import HomeScreen from './src/screens/HomeScreen';
 
-type ScreenState = 'camera' | 'processing' | 'result' | 'error' | 'history';
+type ScreenState = 'home' | 'camera' | 'processing' | 'result' | 'error' | 'history';
 
 export default function App() {
-  const [screen, setScreen] = useState<ScreenState>('camera');
+  const [screen, setScreen] = useState<ScreenState>('home');
   const [processingMessage, setProcessingMessage] = useState<string>('Running OCR…');
   const [result, setResult] = useState<{ productId: string; prices: PriceEntry[] } | null>(null);
   const [errorMessage, setErrorMessage] = useState<string>('Something went wrong.');
   const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [retailer, setRetailer] = useState<Retailer>('UNIQLO');
 
   const [homeCurrency, setHomeCurrency] = useState<Currency>('USD');
 
@@ -171,6 +173,14 @@ export default function App() {
             onClose={resetToCamera}
           />
         );
+      case 'home':
+        return (
+          <HomeScreen
+            selected={retailer}
+            onSelect={(r) => setRetailer(r)}
+            onStart={() => setScreen('camera')}
+          />
+        );
       case 'camera':
       default:
         return (
@@ -180,6 +190,7 @@ export default function App() {
             history={history}
             onSelectHistory={handleSelectHistory}
             onOpenHistory={() => setScreen('history')}
+            onGoBack={() => setScreen('home')}
             statusMessage={null}
             disabled={false}
           />

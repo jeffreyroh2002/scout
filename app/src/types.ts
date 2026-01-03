@@ -1,6 +1,7 @@
 export type Region = 'US' | 'JP' | 'KR' | 'EU';
 
 export type Currency = 'USD' | 'JPY' | 'KRW' | 'EUR';
+export type Retailer = 'UNIQLO' | 'MUJI' | 'ZARA' | 'NIKE';
 
 export type PriceEntry = {
   region: Region;

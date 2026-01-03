@@ -34,6 +34,7 @@ export default function CameraScreen({
   history = [],
   onSelectHistory,
   onOpenHistory,
+  onGoBack,
   disabled = false,
   statusMessage,
 }: Props) {
@@ -127,6 +128,15 @@ export default function CameraScreen({
             enableTorch={false}
           >
             <View style={styles.overlay} pointerEvents="box-none">
+              {onGoBack ? (
+                <Pressable
+                  style={({ pressed }) => [styles.backButton, pressed && styles.backButtonPressed]}
+                  onPress={onGoBack}
+                  pointerEvents="auto"
+                >
+                  <Text style={styles.backLabel}>Back</Text>
+                </Pressable>
+              ) : null}
               <View style={styles.topBar} pointerEvents="none">
                 <Text style={styles.instruction}>{INSTRUCTION}</Text>
                 {statusMessage ? <Text style={styles.status}>{statusMessage}</Text> : null}
@@ -225,6 +235,23 @@ const styles = StyleSheet.create({
     color: '#f2f2f2',
     fontSize: 14,
     textAlign: 'center',
+  },
+  backButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    position: 'absolute',
+    top: 12,
+    left: 12,
+    zIndex: 2,
+  },
+  backButtonPressed: {
+    opacity: 0.8,
+  },
+  backLabel: {
+    color: '#fff',
+    fontWeight: '700',
   },
   bottomBar: {
     alignItems: 'center',
