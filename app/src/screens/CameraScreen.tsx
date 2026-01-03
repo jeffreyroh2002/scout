@@ -127,18 +127,36 @@ export default function CameraScreen({
             zoom={zoom}
             enableTorch={false}
           >
-            <View style={styles.overlay} pointerEvents="box-none">
-              {onGoBack ? (
-                <Pressable
-                  style={({ pressed }) => [styles.backButton, pressed && styles.backButtonPressed]}
-                  onPress={onGoBack}
-                  pointerEvents="auto"
-                >
-                  <Text style={styles.backLabel}>Back</Text>
-                </Pressable>
-              ) : null}
+              <View style={styles.overlay} pointerEvents="box-none">
+                <View style={styles.topButtons} pointerEvents="auto">
+                  {onGoBack ? (
+                    <Pressable
+                      style={({ pressed }) => [
+                        styles.navButton,
+                        pressed && styles.navButtonPressed,
+                      ]}
+                      onPress={onGoBack}
+                    >
+                      <Text style={styles.navButtonLabel}>Back</Text>
+                    </Pressable>
+                  ) : (
+                    <View style={{ width: 80 }} />
+                  )}
+                  {onOpenHistory ? (
+                    <Pressable
+                      style={({ pressed }) => [
+                        styles.navButton,
+                        pressed && styles.navButtonPressed,
+                      ]}
+                      onPress={onOpenHistory}
+                    >
+                      <Text style={styles.navButtonLabel}>History</Text>
+                    </Pressable>
+                  ) : (
+                    <View style={{ width: 80 }} />
+                  )}
+                </View>
               <View style={styles.topBar} pointerEvents="none">
-                <Text style={styles.instruction}>{INSTRUCTION}</Text>
                 {statusMessage ? <Text style={styles.status}>{statusMessage}</Text> : null}
                 {localStatus && !statusMessage ? (
                   <Text style={styles.status}>{localStatus}</Text>
@@ -177,14 +195,7 @@ export default function CameraScreen({
               </View>
 
               <View style={styles.bottomBar}>
-                {onOpenHistory ? (
-                  <Pressable
-                    style={({ pressed }) => [styles.historyButton, pressed && styles.historyButtonPressed]}
-                    onPress={onOpenHistory}
-                  >
-                    <Text style={styles.historyButtonLabel}>History</Text>
-                  </Pressable>
-                ) : null}
+                <Text style={styles.instruction}>{INSTRUCTION}</Text>
                 <Pressable
                   accessibilityRole="button"
                   accessibilityLabel="Capture photo"
@@ -230,6 +241,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     textAlign: 'center',
+    marginBottom: 8
   },
   status: {
     color: '#f2f2f2',
@@ -256,18 +268,28 @@ const styles = StyleSheet.create({
   bottomBar: {
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 10,
+    gap: 12,
   },
-  historyButton: {
-    paddingHorizontal: 16,
+  topButtons: {
+    position: 'absolute',
+    top: 10,
+    left: 10,
+    right: 10,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  navButton: {
+    minWidth: 80,
+    paddingHorizontal: 14,
     paddingVertical: 10,
     borderRadius: 12,
     backgroundColor: 'rgba(255,255,255,0.14)',
+    alignItems: 'center',
   },
-  historyButtonPressed: {
+  navButtonPressed: {
     opacity: 0.8,
   },
-  historyButtonLabel: {
+  navButtonLabel: {
     color: '#fff',
     fontWeight: '700',
   },
@@ -275,6 +297,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: 5,
   },
   scanFrame: {
     width: '60%',
