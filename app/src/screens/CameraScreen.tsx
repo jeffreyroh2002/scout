@@ -167,7 +167,7 @@ export default function CameraScreen({
               </View>
 
               <View style={styles.bottomBar}>
-                {history.length > 0 && onOpenHistory ? (
+                {onOpenHistory ? (
                   <Pressable
                     style={({ pressed }) => [styles.historyButton, pressed && styles.historyButtonPressed]}
                     onPress={onOpenHistory}

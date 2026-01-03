@@ -16,6 +16,7 @@ export type PriceEntry = {
 export type HistoryEntry = {
   productId: string;
   productName?: string;
+  imageUrl?: string;
   prices: PriceEntry[];
   timestamp: number;
 };

@@ -1,4 +1,4 @@
-import { FlatList, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Image, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { Currency, PriceEntry } from '../types';
 
@@ -25,8 +25,13 @@ export default function ResultScreen({
   onRescan,
 }: Props) {
   const bestDeal = getBestDeal(prices, homeCurrency);
+  const homeEntry = prices.find((p) => p.currency === homeCurrency && !p.error);
+  const fallbackEntry = prices.find((p) => p.productName || p.imageUrl);
   const productName =
-    prices.find((p) => p.productName)?.productName?.trim() || `Product ${productId}`;
+    homeEntry?.productName?.trim() ||
+    fallbackEntry?.productName?.trim() ||
+    `Product ${productId}`;
+  const productImage = homeEntry?.imageUrl || fallbackEntry?.imageUrl;
 
   const renderRow = ({ item }: { item: PriceEntry }) => {
     const isUnavailable = Boolean(item.error && item.error.includes('HTTP 404'));
@@ -76,7 +81,19 @@ export default function ResultScreen({
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{productName}</Text>
+      <View style={styles.headerRowTop}>
+        {productImage ? (
+          <Image source={{ uri: productImage }} style={styles.productImage} />
+        ) : (
+          <View style={styles.productImagePlaceholder}>
+            <Text style={styles.placeholderText}>IMG</Text>
+          </View>
+        )}
+        <View style={styles.titleWrap}>
+          <Text style={styles.title}>{productName}</Text>
+          <Text style={styles.subtitle}>ID: {productId}</Text>
+        </View>
+      </View>
       <View style={styles.currencyRow}>
         <Text style={styles.subtitle}>Home currency</Text>
         <View style={styles.currencyChips}>
@@ -149,6 +166,32 @@ const styles = StyleSheet.create({
   subtitle: {
     color: '#c8d1dc',
     fontSize: 16,
+  },
+  headerRowTop: {
+    flexDirection: 'row',
+    gap: 12,
+    alignItems: 'center',
+  },
+  titleWrap: {
+    flex: 1,
+  },
+  productImage: {
+    width: 72,
+    height: 72,
+    borderRadius: 12,
+    backgroundColor: '#1c2936',
+  },
+  productImagePlaceholder: {
+    width: 72,
+    height: 72,
+    borderRadius: 12,
+    backgroundColor: '#1c2936',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  placeholderText: {
+    color: '#6f8297',
+    fontWeight: '700',
   },
   currencyRow: {
     marginTop: 4,

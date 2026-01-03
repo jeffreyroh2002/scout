@@ -1,4 +1,4 @@
-import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import type { HistoryEntry } from '../types';
 
 type Props = {
@@ -16,13 +16,22 @@ export default function HistoryScreen({ history, onSelect, onClose }: Props) {
         style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
         onPress={() => onSelect(item)}
       >
+        <Image
+          source={
+            item.imageUrl
+              ? { uri: item.imageUrl }
+              : require('../../assets/icon.png')
+          }
+          style={styles.rowImage}
+        />
         <View style={styles.rowContent}>
           <Text style={styles.title}>{label}</Text>
           <Text style={styles.sub}>{item.productId}</Text>
+          <Text style={styles.time}>
+            {date.toLocaleDateString()}{' '}
+            {date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          </Text>
         </View>
-        <Text style={styles.time}>
-          {date.toLocaleDateString()} {date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-        </Text>
       </Pressable>
     );
   };
@@ -77,13 +86,21 @@ const styles = StyleSheet.create({
   row: {
     paddingVertical: 12,
     paddingHorizontal: 8,
+    flexDirection: 'row',
+    gap: 10,
   },
   rowPressed: {
     backgroundColor: 'rgba(255,255,255,0.06)',
     borderRadius: 10,
   },
   rowContent: {
-    marginBottom: 4,
+    flex: 1,
+  },
+  rowImage: {
+    width: 56,
+    height: 56,
+    borderRadius: 10,
+    backgroundColor: '#1c2936',
   },
   title: {
     color: '#fff',

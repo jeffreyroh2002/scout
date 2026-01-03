@@ -46,6 +46,7 @@ export default function App() {
           const updated = upsertHistory(prev, {
             productId,
             productName: converted.find((p) => p.productName)?.productName,
+            imageUrl: converted.find((p) => p.imageUrl)?.imageUrl,
             prices: converted,
             timestamp: Date.now(),
           });

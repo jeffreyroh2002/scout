@@ -393,7 +393,13 @@ async function fetchPricesViaProxy(productId: string): Promise<PriceEntry[] | nu
               error: `Proxy HTTP ${res.status}`,
             } as PriceEntry;
           }
-          const data = (await res.json()) as { price?: number; currency?: string; error?: string };
+          const data = (await res.json()) as {
+            price?: number;
+            currency?: string;
+            error?: string;
+            productName?: string;
+            imageUrl?: string;
+          };
 
           if (data.error) {
             return {
@@ -413,6 +419,8 @@ async function fetchPricesViaProxy(productId: string): Promise<PriceEntry[] | nu
             currency: config.currency,
             convertedPrice: null,
             error: typeof data.price === 'number' ? undefined : 'Price missing from proxy',
+            productName: data.productName,
+            imageUrl: data.imageUrl,
           } as PriceEntry;
         } catch (error) {
           return {
@@ -422,6 +430,8 @@ async function fetchPricesViaProxy(productId: string): Promise<PriceEntry[] | nu
             currency: config.currency,
             convertedPrice: null,
             error: error instanceof Error ? error.message : 'Proxy fetch failed',
+            productName: undefined,
+            imageUrl: undefined,
           } as PriceEntry;
         }
       })
