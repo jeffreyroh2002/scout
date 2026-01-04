@@ -132,11 +132,7 @@ export default function App() {
 
   useEffect(() => {
     loadHistory().then((items) => {
-      const converted = items.map((entry) => ({
-        ...entry,
-        prices: convertPrices(entry.prices, homeCurrency),
-      }));
-      setHistory(converted);
+      setHistory(items);
     });
     AsyncStorage.getItem('homeCurrency')
       .then((value) => {
@@ -145,6 +141,15 @@ export default function App() {
         }
       })
       .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    setHistory((prev) =>
+      prev.map((entry) => ({
+        ...entry,
+        prices: convertPrices(entry.prices, homeCurrency),
+      }))
+    );
   }, [homeCurrency]);
 
   const renderContent = () => {
