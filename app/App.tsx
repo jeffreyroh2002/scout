@@ -11,11 +11,11 @@ import ErrorScreen from './src/screens/ErrorScreen';
 import HistoryScreen from './src/screens/HistoryScreen';
 import { recognizeTextFromImage } from './src/services/OCRService';
 import { extractProductId } from './src/services/ProductIdExtractor';
-import { fetchPrices, validateProductId } from './src/services/UniqloPriceService';
 import { convertPrices } from './src/services/CurrencyConverter';
 import type { Currency, HistoryEntry, PriceEntry, Retailer } from './src/types';
 import { loadHistory, saveHistory, upsertHistory } from './src/services/HistoryService';
 import HomeScreen from './src/screens/HomeScreen';
+import { fetchPricesByRetailer, validateProduct } from './src/services/RetailerPriceService';
 
 type ScreenState = 'home' | 'camera' | 'processing' | 'result' | 'error' | 'history';
 
@@ -34,13 +34,13 @@ export default function App() {
       try {
         setScreen('processing');
         setProcessingMessage(`Found ${productId}. Validating…`);
-        const valid = await validateProductId(productId);
+        const valid = await validateProduct(productId, retailer);
         if (!valid) {
           throw new Error('Product not found. Please confirm the tag and try again.');
         }
 
         setProcessingMessage('Fetching prices across regions…');
-        const priceEntries = await fetchPrices(productId);
+        const priceEntries = await fetchPricesByRetailer(productId, retailer, homeCurrency);
         const converted = convertPrices(priceEntries, homeCurrency);
 
         setResult({ productId, prices: converted });
@@ -50,6 +50,7 @@ export default function App() {
             productName: converted.find((p) => p.productName)?.productName,
             imageUrl: converted.find((p) => p.imageUrl)?.imageUrl,
             prices: converted,
+            retailer,
             timestamp: Date.now(),
           });
           saveHistory(updated);
@@ -63,7 +64,7 @@ export default function App() {
         setScreen('error');
       }
     },
-    [homeCurrency]
+    [homeCurrency, retailer]
   );
 
   const resetToCamera = useCallback(() => {
@@ -79,7 +80,7 @@ export default function App() {
         setProcessingMessage('Running OCR on tag…');
         const ocrResult = await recognizeTextFromImage(photo.uri);
 
-        const { productId } = extractProductId(ocrResult.text);
+        const { productId } = extractProductId(ocrResult.text, retailer);
         if (!productId) {
           throw new Error('No Product ID found. Please re-scan the tag.');
         }
@@ -92,7 +93,7 @@ export default function App() {
         setScreen('error');
       }
     },
-    [runLookup]
+    [runLookup, retailer]
   );
 
   const handleManualLookup = useCallback(
@@ -125,6 +126,7 @@ export default function App() {
         productId: entry.productId,
         prices: convertPrices(entry.prices, homeCurrency),
       });
+      setRetailer(entry.retailer);
       setScreen('result');
     },
     [homeCurrency]
@@ -198,6 +200,7 @@ export default function App() {
             onGoBack={() => setScreen('home')}
             statusMessage={null}
             disabled={false}
+            retailer={retailer}
           />
         );
     }

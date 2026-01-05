@@ -26,7 +26,9 @@ export default function HistoryScreen({ history, onSelect, onClose }: Props) {
         />
         <View style={styles.rowContent}>
           <Text style={styles.title}>{label}</Text>
-          <Text style={styles.sub}>{item.productId}</Text>
+          <Text style={styles.sub}>
+            {item.productId} · {item.retailer}
+          </Text>
           <Text style={styles.time}>
             {date.toLocaleDateString()}{' '}
             {date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}

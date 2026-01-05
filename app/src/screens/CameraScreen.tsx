@@ -23,6 +23,7 @@ type Props = {
   history?: HistoryEntry[];
   onSelectHistory?: (entry: HistoryEntry) => void;
   onOpenHistory?: () => void;
+  retailer?: string;
 };
 
 const INSTRUCTION = 'Take a photo of the tag';
@@ -35,6 +36,7 @@ export default function CameraScreen({
   onSelectHistory,
   onOpenHistory,
   onGoBack,
+  retailer,
   disabled = false,
   statusMessage,
 }: Props) {
@@ -175,13 +177,13 @@ export default function CameraScreen({
                       autoCapitalize="none"
                       autoCorrect={false}
                       onSubmitEditing={() => {
-                        const idMatch = debugInput.match(/E?(\d{6})/);
+                        const idMatch = debugInput.match(/(\d{13}|\d{6})/);
                         const id = idMatch?.[1];
                         if (id) {
                           setLocalStatus(`Manual lookup: ${id}`);
                           onManualLookup(id);
                         } else {
-                          setLocalStatus('Enter a valid 6-digit ID or URL containing it.');
+                          setLocalStatus('Enter a valid ID (6 or 13 digits) or URL containing it.');
                         }
                       }}
                       returnKeyType="search"

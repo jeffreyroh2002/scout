@@ -1,4 +1,7 @@
-const PRODUCT_ID_REGEX = /\b(\d{6})\b/g;
+import type { Retailer } from '../types';
+
+const UNIQLO_ID_REGEX = /\b(\d{6})\b/g;
+const MUJI_ID_REGEX = /\b(\d{13})\b/g;
 
 export type ProductIdCandidate = {
   id: string;
@@ -6,11 +9,16 @@ export type ProductIdCandidate = {
   sourceText: string;
 };
 
-export function extractProductId(lines: string[]): { productId: string | null; candidates: ProductIdCandidate[] } {
+export function extractProductId(
+  lines: string[],
+  retailer: Retailer
+): { productId: string | null; candidates: ProductIdCandidate[] } {
   const candidates: ProductIdCandidate[] = [];
 
+  const pattern = retailer === 'MUJI' ? MUJI_ID_REGEX : UNIQLO_ID_REGEX;
+
   lines.forEach((line, index) => {
-    const matches = Array.from(line.matchAll(PRODUCT_ID_REGEX));
+    const matches = Array.from(line.matchAll(pattern));
     matches.forEach((match) => {
       const id = match[1];
       const score = scoreCandidate(id, line, index, lines.length);

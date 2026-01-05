@@ -26,7 +26,7 @@ export async function saveHistory(entries: HistoryEntry[]): Promise<void> {
 }
 
 export function upsertHistory(entries: HistoryEntry[], next: HistoryEntry): HistoryEntry[] {
-  const filtered = entries.filter((e) => e.productId !== next.productId);
+  const filtered = entries.filter((e) => !(e.productId === next.productId && e.retailer === next.retailer));
   const updated = [{ ...next, timestamp: Date.now() }, ...filtered];
   return updated.slice(0, MAX_HISTORY);
 }

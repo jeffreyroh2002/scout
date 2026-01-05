@@ -1,7 +1,7 @@
 export type Region = 'US' | 'JP' | 'KR' | 'EU';
 
 export type Currency = 'USD' | 'JPY' | 'KRW' | 'EUR';
-export type Retailer = 'UNIQLO' | 'MUJI' | 'ZARA' | 'NIKE';
+export type Retailer = 'UNIQLO' | 'MUJI' | 'ZARA' | 'NIKE' | 'LULULEMON';
 
 export type PriceEntry = {
   region: Region;
@@ -19,6 +19,7 @@ export type HistoryEntry = {
   productName?: string;
   imageUrl?: string;
   prices: PriceEntry[];
+  retailer: Retailer;
   timestamp: number;
 };
 

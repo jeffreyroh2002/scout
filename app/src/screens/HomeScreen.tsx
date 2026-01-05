@@ -1,11 +1,12 @@
 import { Image, Pressable, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import type { Retailer } from '../types';
 
-const LOGOS: Record<Retailer, any> = {
+const LOGOS: Partial<Record<Retailer, any>> = {
   UNIQLO: require('../../assets/UNIQLO.png'),
   MUJI: require('../../assets/MUJI.jpg'),
   ZARA: require('../../assets/ZARA.png'),
-  NIKE: require('../../assets/NIKE.jpg'), // Expo supports svg via metro asset plugin if configured; if not, swap to PNG
+  NIKE: require('../../assets/NIKE.jpg'),
+  // No LULULEMON logo asset yet; tile will render text-only.
 };
 
 type Props = {
@@ -14,7 +15,7 @@ type Props = {
   onStart: () => void;
 };
 
-const RETAILERS: Retailer[] = ['UNIQLO', 'MUJI', 'ZARA', 'NIKE'];
+const RETAILERS: Retailer[] = ['UNIQLO', 'MUJI', 'ZARA', 'NIKE', 'LULULEMON'];
 
 export default function HomeScreen({ selected, onSelect, onStart }: Props) {
   return (
@@ -36,7 +37,13 @@ export default function HomeScreen({ selected, onSelect, onStart }: Props) {
                   ]}
                   onPress={() => onSelect(r)}
                 >
-                  <Image source={LOGOS[r]} style={styles.logo} resizeMode="contain" />
+                  {LOGOS[r] ? (
+                    <Image source={LOGOS[r]} style={styles.logo} resizeMode="contain" />
+                  ) : (
+                    <View style={styles.logoPlaceholder}>
+                      <Text style={styles.logoPlaceholderText}>{r}</Text>
+                    </View>
+                  )}
                   <Text style={[styles.tileLabel, isSelected && styles.tileLabelSelected]}>{r}</Text>
                 </Pressable>
               );
@@ -121,6 +128,23 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     marginBottom: 8,
+  },
+  logoPlaceholder: {
+    width: 80,
+    height: 80,
+    marginBottom: 8,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#243447',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 8,
+  },
+  logoPlaceholderText: {
+    color: '#dbe3ef',
+    textAlign: 'center',
+    fontWeight: '700',
+    fontSize: 12,
   },
   startButton: {
     marginTop: 'auto',
